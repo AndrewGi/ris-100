@@ -1,21 +1,17 @@
 pub mod add;
 pub mod jmp;
 pub mod lines;
+pub mod mov;
 pub mod neg;
 pub mod nop;
 pub mod sav;
+pub mod sub;
 pub mod swp;
 
 use crate::tis::core::Core;
 use crate::tis::instruction::lines::Line;
-use crate::tis::register;
 use crate::tis::register::Direction;
 use crate::tis::value::Value;
-
-pub enum Src {
-    Register(register::Which),
-    Value(Value),
-}
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug, Hash)]
 pub enum Operand {
     Acc,
@@ -30,10 +26,38 @@ impl Operand {
             Operand::Port(dir) => dir.as_str(),
         }
     }
+    pub fn get_value<L: AsRef<[Line]>>(self, core: &Core<L>) -> Value {
+        match self {
+            Operand::Acc => core.acc,
+            Operand::Nil => Value::NIL,
+            Operand::Port(_) => unimplemented!("need to implement ports"),
+        }
+    }
 }
 impl core::fmt::Display for Operand {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str(self.as_str())
+    }
+}
+#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug, Hash)]
+pub enum OperandValue {
+    Operand(Operand),
+    Value(Value),
+}
+impl OperandValue {
+    pub fn get_value<L: AsRef<[Line]>>(self, core: &Core<L>) -> Value {
+        match self {
+            OperandValue::Operand(o) => o.get_value(core),
+            OperandValue::Value(v) => v,
+        }
+    }
+}
+impl core::fmt::Display for OperandValue {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            OperandValue::Operand(o) => f.write_str(o.as_str()),
+            OperandValue::Value(v) => write!(f, "{}", v),
+        }
     }
 }
 pub trait Instruction {
@@ -81,17 +105,11 @@ impl core::fmt::Display for Tag {
 }
 pub enum Instructions {
     Nop(nop::Nop),
-    //TODO
-    Mov,
-    //TODO
+    Mov(mov::Mov),
     Swp(swp::Swp),
-    //TODO
     Sav(sav::Sav),
-    //TODO
-    Add,
-    //TODO
-    Sub,
-    //TODO
+    Add(add::Add),
+    Sub(sub::Sub),
     Neg(neg::Neg),
     //TODO
     Jmp,

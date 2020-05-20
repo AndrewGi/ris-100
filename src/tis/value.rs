@@ -6,6 +6,7 @@ use core::ops;
 pub struct Value(i16);
 
 impl Value {
+    pub const NIL: Value = Self::ZERO;
     pub const ZERO: Value = Value(0);
     pub const ONE: Value = Value(1);
     /// Clamps value into a range of `[-999, 999]`. Doesn't change the value
@@ -23,6 +24,11 @@ impl Value {
         } else {
             value
         }
+    }
+}
+impl core::fmt::Display for Value {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 impl From<Value> for i16 {
@@ -51,6 +57,16 @@ impl ops::Add<Value> for Value {
         self + rhs.0
     }
 }
+impl ops::AddAssign<i16> for Value {
+    fn add_assign(&mut self, rhs: i16) {
+        *self = Self::new_clamped(self.0 + rhs)
+    }
+}
+impl ops::AddAssign<Value> for Value {
+    fn add_assign(&mut self, rhs: Value) {
+        *self += rhs.0
+    }
+}
 impl ops::Sub<i16> for Value {
     type Output = Value;
 
@@ -65,6 +81,16 @@ impl ops::Sub<Value> for Value {
         self - rhs.0
     }
 }
+impl ops::SubAssign<i16> for Value {
+    fn sub_assign(&mut self, rhs: i16) {
+        *self = *self - rhs
+    }
+}
+impl ops::SubAssign<Value> for Value {
+    fn sub_assign(&mut self, rhs: Value) {
+        *self -= rhs.0
+    }
+}
 impl ops::Mul<i16> for Value {
     type Output = Value;
 
@@ -77,5 +103,15 @@ impl ops::Mul<Value> for Value {
 
     fn mul(self, rhs: Value) -> Self::Output {
         self * rhs.0
+    }
+}
+impl ops::MulAssign<i16> for Value {
+    fn mul_assign(&mut self, rhs: i16) {
+        *self = *self * rhs
+    }
+}
+impl ops::MulAssign<Value> for Value {
+    fn mul_assign(&mut self, rhs: Value) {
+        *self *= rhs.0
     }
 }
