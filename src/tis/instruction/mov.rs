@@ -10,5 +10,7 @@ pub struct Mov {
 impl Instruction for Mov {
     fn perform<L: AsRef<[Line]>>(&self, core: &mut Core<L>) -> Result<(), Error> {
         let src = self.src.get_value(core);
+        core.store_operand(self.dst, src);
+        Ok(())
     }
 }
